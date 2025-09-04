@@ -1,0 +1,19 @@
+# --- Python / Streamlit ---
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ipynb_checkpoints/
+
+# --- Local data & secrets ---
+.env
+finance.db
+.streamlit/secrets.toml
+
+# --- OS/Editor junk ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
