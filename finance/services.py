@@ -1,22 +1,21 @@
 import datetime as dt
 import pandas as pd
 from typing import Tuple
-from .repository import Repo
+from .repository import FinanceRep
 
 class FinanceService:
-    def __init__(self, repo: Repo):
+    def __init__(self, repo: FinanceRep):
         self.repo = repo
         self.repo.seed_defaults()
 
-    # KPIs
     def kpis(self, df: pd.DataFrame) -> Tuple[float, float, float]:
         if df.empty: return 0.0, 0.0, 0.0
         income = float(df.loc[df["type"]=="INCOME","amount"].sum())
         expense = float(df.loc[df["type"]=="EXPENSE","amount"].sum())
         return income, expense, income-expense
 
-    # Insights (over-budget, top expenses, savings rate)
-    def insights(self, df: pd.DataFrame):
+  
+    def finance_insights(self, df: pd.DataFrame):
         if df.empty:
             return {"savings_rate": None, "top_expenses": [], "over_msgs": []}
         income, expense, net = self.kpis(df)

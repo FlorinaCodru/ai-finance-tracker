@@ -2,12 +2,12 @@ import datetime as dt
 import streamlit as st
 import pandas as pd
 from typing import Optional, List, Tuple
-from finance.repository import Repo
+from finance.repository import FinanceRep
 from finance.services import FinanceService
-from finance.ai import GeminiService
-from ui.charts import category_pie, monthly_trend, budget_vs_actual
+from finance.ai import AiService
+from ui.charts import pie_category, monthly_trend, actual_budget
 
-def render_filters(repo: Repo) -> Tuple[str, str, Optional[str], List[int]]:
+def show_filters(repo: FinanceRep) -> Tuple[str, str, Optional[str], List[int]]:
     st.subheader("Filters")
     c1, c2, c3 = st.columns([1,1,2])
     with c1:
@@ -15,17 +15,17 @@ def render_filters(repo: Repo) -> Tuple[str, str, Optional[str], List[int]]:
     with c2:
         end = st.text_input("End date (YYYY-MM-DD)", value=dt.date.today().isoformat(), key="f_end")
     with c3:
-        typ = st.selectbox("Type (optional)", ["All","EXPENSE","INCOME"], index=0, key="f_type")
+        typ = st.selectbox("Type", ["All","EXPENSE","INCOME"], index=0, key="f_type")
         typ = None if typ=="All" else typ
     cats = repo.list_categories()
     cat_choices: List[int] = []
     if not cats.empty:
         cat_map = {f"{r['name']} ({r['type']}) [id:{r['id']}]": int(r["id"]) for _,r in cats.iterrows()}
-        selected = st.multiselect("Categories (optional)", list(cat_map.keys()), key="f_cats")
+        selected = st.multiselect("Categories", list(cat_map.keys()), key="f_cats")
         cat_choices = [cat_map[s] for s in selected]
     return start, end, typ, cat_choices
 
-def render_kpis(service: FinanceService, df: pd.DataFrame):
+def display_kpis(service: FinanceService, df: pd.DataFrame):
     income, expense, net = service.kpis(df)
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -39,14 +39,12 @@ def render_kpis(service: FinanceService, df: pd.DataFrame):
         st.markdown(f'<div class="metric-box"><div class="kpi-title">Net</div>'
                     f'<div class="kpi-value {cls}">{net:,.2f}</div></div>', unsafe_allow_html=True)
 
-def render_insights(service: FinanceService, df: pd.DataFrame):
+def show_finance_insights(service: FinanceService, df: pd.DataFrame):
   
     if df.empty:
         return
 
-    data = service.insights(df)
-
-    # Build lines
+    data = service.finance_insights(df)
     savings_line = ""
     if data["savings_rate"] is not None:
         savings_line = f"<p><b>Savings rate:</b> {data['savings_rate']:.1f}%</p>"
@@ -58,7 +56,6 @@ def render_insights(service: FinanceService, df: pd.DataFrame):
         ) + "</p>"
 
     if data["over_msgs"]:
-        # over_msgs contain markdown **…** — strip the asterisks so it looks clean in HTML
         over_items = "".join(
             [f"<li class='bad small'>{m.replace('**','')}</li>" for m in data["over_msgs"]]
         )
@@ -66,10 +63,9 @@ def render_insights(service: FinanceService, df: pd.DataFrame):
     else:
         over_html = "<span class='good small'>No categories over budget this month.</span>"
 
-    # Everything is rendered INSIDE the card in a single HTML block
     html = f"""
     <div class="enhanced-card padded">
-      <div class="section-title">Quick Insights</div>
+      <div class="section-title">Quick finance_insights</div>
       {savings_line}
       {top_line}
       {over_html}
@@ -78,22 +74,22 @@ def render_insights(service: FinanceService, df: pd.DataFrame):
     st.markdown(html, unsafe_allow_html=True)
 
 
-def render_tabs(repo: Repo, service: FinanceService, ai: GeminiService, df: pd.DataFrame):
-    t1, t2, t3 = st.tabs(["📊 Charts", "🧾 Transactions", "🤖 AI Advice"])
+def all_tabs(repo: FinanceRep, service: FinanceService, ai: AiService, df: pd.DataFrame):
+    t1, t2, t3 = st.tabs(["Charts", " Transactions", " AI Advice"])
 
     with t1:
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown("**Category Spend (Expenses)**")
-            category_pie(df)
+            st.markdown("**Category Spend Expenses**")
+            pie_category(df)
         with c2:
-            st.markdown("**Monthly Trend (Income vs Expense)**")
+            st.markdown("**Monthly Trend Income vs Expense**")
             monthly_trend(df)
         st.markdown("---")
-        st.markdown("**Budget vs Actual (This Month)**")
+        st.markdown("**This Month Budget vs Actual**")
         budgets = repo.get_budgets()
         month = dt.date.today().replace(day=1)
-        budget_vs_actual(df, budgets, month)
+        actual_budget(df, budgets, month)
 
     with t2:
         st.subheader("Transactions")
@@ -123,15 +119,15 @@ def render_tabs(repo: Repo, service: FinanceService, ai: GeminiService, df: pd.D
 
                 colb1, colb2, _ = st.columns([1,1,4])
                 if colb1.button("Update", type="primary", key="edit_update"):
-                    ok, msg = repo.update_transaction(int(chosen), date, description, float(amount), new_cat_id, typ)
+                    ok, msg = repo.update_trans(int(chosen), date, description, float(amount), new_cat_id, typ)
                     st.success(msg) if ok else st.error(msg)
                     if ok: st.rerun()
                 if colb2.button("Delete", type="secondary", key="edit_delete"):
-                    repo.delete_transaction(int(chosen))
+                    repo.delete_trans(int(chosen))
                     st.warning("Transaction deleted.")
                     st.rerun()
 
-        # export
+
         if not df.empty:
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button("⬇️ Export CSV", data=csv, file_name="transactions.csv", mime="text/csv")

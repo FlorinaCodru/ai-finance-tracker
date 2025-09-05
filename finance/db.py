@@ -1,7 +1,7 @@
 import sqlite3
 from .config import DB_PATH
 
-class Database:
+class FinanceDb:
     def __init__(self, path: str = DB_PATH):
         self.path = path
 

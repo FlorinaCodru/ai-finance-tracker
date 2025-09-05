@@ -2,10 +2,10 @@ import os
 import streamlit as st
 import pandas as pd
 from .services import FinanceService
-from .repository import Repo
+from .repository import FinanceRep
 from dotenv import load_dotenv
 
-# google.generativeai
+
 try:
     import google.generativeai as genai
 except Exception:
@@ -14,7 +14,7 @@ except Exception:
 load_dotenv()
 ENV_GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-class GeminiService:
+class AiService:
     def __init__(self):
         pass
 
@@ -23,7 +23,7 @@ class GeminiService:
 
     def init(self):
         if not genai:
-            return False, "google-generativeai not installed."
+            return False, "google generativeai not installed."
         key = self._effective_key()
         if not key:
             return False, "GEMINI_API_KEY not set."
@@ -35,7 +35,7 @@ class GeminiService:
 
     def build_prompt(self, df: pd.DataFrame, months: int, finance: FinanceService) -> str:
         if df.empty:
-            return "User has no data yet. Offer general budgeting advice for beginners."
+            return "User has no data."
         cutoff = (pd.Timestamp.today().date().replace(day=1) - pd.offsets.MonthBegin(months)).date()
         recent = df[df["date"] >= cutoff].copy()
         if recent.empty:
@@ -74,10 +74,10 @@ Constraints:
     def get_advice(self, prompt: str, model_name: str = "gemini-1.5-pro") -> str:
         ok, msg = self.init()
         if not ok:
-            return f"_AI advice unavailable: {msg}_"
+            return f" AI advice unavailable: {msg}"
         try:
             model = genai.GenerativeModel(model_name)
             resp = model.generate_content(prompt)
-            return (getattr(resp,"text","") or "").strip() or "_No advice returned._"
+            return (getattr(resp,"text","") or "").strip() or "No advice returned"
         except Exception as e:
-            return f"_AI advice error: {e}_"
+            return f"AI advice error: {e}"

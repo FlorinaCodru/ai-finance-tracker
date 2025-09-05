@@ -1,10 +1,10 @@
 import datetime as dt
 import streamlit as st
-from finance.repository import Repo
+from finance.repository import FinanceRep
 
-def sidebar_api_key():
+def ai_api_key():
     st.subheader("Gemini API Key")
-    st.caption("Enter your key here to enable AI budgeting tips.")
+    st.caption("Enter key here to enable budgeting tips.")
     key_input = st.text_input("API Key", value="", type="password", placeholder="paste key…")
     c1, c2 = st.columns([1,1])
     with c1:
@@ -19,7 +19,7 @@ def sidebar_api_key():
             st.session_state["gemini_key"] = ""
             st.info("API key cleared (will use .env if set).")
 
-def sidebar_add_category(repo: Repo):
+def menu_add_category(repo: FinanceRep):
     st.subheader("Add Category")
     c1, c2 = st.columns([2,1])
     with c1:
@@ -31,7 +31,7 @@ def sidebar_add_category(repo: Repo):
         st.success(msg) if ok else st.error(msg)
         if ok: st.rerun()
 
-def sidebar_add_budget(repo: Repo):
+def menu_add_budget(repo: FinanceRep):
     st.subheader("Budgets (Monthly)")
     cats = repo.list_categories("EXPENSE")
     if cats.empty:
@@ -47,14 +47,14 @@ def sidebar_add_budget(repo: Repo):
     limit = st.number_input("Monthly limit", min_value=0.0, step=50.0, key="budget_limit")
 
     if st.button("Save Budget", use_container_width=True, key="save_budget_btn"):
-        ok, msg = repo.upsert_budget(cat_id, float(limit))
+        ok, msg = repo.add_budget(cat_id, float(limit))
         st.success(msg) if ok else st.error(msg)
 
-def sidebar_add_transaction(repo: Repo):
+def menu_add_trans(repo: FinanceRep):
     st.subheader("Add Transaction")
     today = dt.date.today().isoformat()
     date = st.text_input("Date (YYYY-MM-DD)", value=today, key="txn_date")
-    desc = st.text_input("Description (optional)", max_chars=120, placeholder="e.g., Coffee, Salary", key="txn_desc")
+    desc = st.text_input("Description", max_chars=120, placeholder="e.g: Coffee, Salary", key="txn_desc")
     amount = st.number_input("Amount", min_value=0.01, step=1.0, key="txn_amount")
     typ = st.selectbox("Type", ["EXPENSE","INCOME"], index=0, key="txn_type_add")
 
@@ -71,15 +71,15 @@ def sidebar_add_transaction(repo: Repo):
         cat_id = id_map[selected_name] if selected_name else None
 
     if st.button("Add", use_container_width=True, type="primary", disabled=(cat_id is None), key="add_txn_btn"):
-        ok, msg = repo.add_transaction(date, desc, float(amount), cat_id, typ)
+        ok, msg = repo.add_trans(date, desc, float(amount), cat_id, typ)
         st.success(msg) if ok else st.error(msg)
         if ok: st.rerun()
 
-def render_sidebar(repo: Repo, service, ai):
-    sidebar_add_transaction(repo)
+def render_menu(repo: FinanceRep, service, ai):
+    menu_add_trans(repo)
     st.markdown("---")
-    sidebar_add_category(repo)
+    menu_add_category(repo)
     st.markdown("---")
-    sidebar_add_budget(repo)
+    menu_add_budget(repo)
     st.markdown("---")
-    sidebar_api_key()
+    ai_api_key()

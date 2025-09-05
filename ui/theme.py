@@ -14,14 +14,13 @@ def inject_theme():
           [data-testid="stSidebar"] > div { width: 360px !important; }
           section[data-testid="stSidebarCollapsedControl"] { left: auto; right: 0; }
 
-          :root {
-            --brand-yellow: #facc15; --brand-yellow-dark: #eab308;
-            --brand-yellow-faint: #fffbeb; --soft-border: #fde68a; --ink: #111827;
-          }
-
           h1, .st-emotion-cache-10trblm, .st-emotion-cache-1wmy9hl {
             background: linear-gradient(90deg, #facc15, #f59e0b);
             -webkit-background-clip: text; background-clip: text; color: transparent;
+          }
+           :root {
+            --brand-yellow: #facc15; --brand-yellow-dark: #eab308;
+            --brand-yellow-faint: #fffbeb; --soft-border: #fde68a; --ink: #111827;
           }
 
           .stButton > button, .stDownloadButton > button {

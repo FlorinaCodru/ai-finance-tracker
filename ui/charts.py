@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from finance.config import YELLOW_COLORS
 
-def category_pie(df: pd.DataFrame):
+def pie_category(df: pd.DataFrame):
     ex = df[df["type"]=="EXPENSE"]
     if ex.empty:
         st.info("No expense data to plot."); return
@@ -29,7 +29,7 @@ def monthly_trend(df: pd.DataFrame):
     ax.set_xlabel("Month"); ax.set_ylabel("Amount"); ax.legend(); ax.grid(True, alpha=0.3)
     st.pyplot(fig)
 
-def budget_vs_actual(df: pd.DataFrame, budgets: pd.DataFrame, for_month: dt.date):
+def actual_budget(df: pd.DataFrame, budgets: pd.DataFrame, for_month: dt.date):
     if budgets.empty:
         st.info("No budgets configured."); return
     start = for_month.replace(day=1)
