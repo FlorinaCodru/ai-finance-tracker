@@ -136,7 +136,7 @@ def all_tabs(repo: FinanceRep, service: FinanceService, ai: AiService, df: pd.Da
         st.markdown("**Generate concise budgeting suggestions based on your recent data.**")
         months = st.slider("Summarize roughly how many months?", min_value=1, max_value=12, value=3, key="ai_months")
         if st.button("Get AI Advice", type="primary", key="ai_btn"):
-            prompt = ai.build_prompt(df, months, service)
+            prompt = ai.make_prompt(df, months, service)
             with st.spinner("Getting tips..."):
                 advice = ai.get_advice(prompt)
             st.markdown(advice)

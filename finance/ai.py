@@ -18,13 +18,13 @@ class AiService:
     def __init__(self):
         pass
 
-    def _effective_key(self) -> str:
+    def api_key(self) -> str:
         return st.session_state.get("gemini_key","") or ENV_GEMINI_API_KEY
 
     def init(self):
         if not genai:
             return False, "google generativeai not installed."
-        key = self._effective_key()
+        key = self.api_key()
         if not key:
             return False, "GEMINI_API_KEY not set."
         try:
@@ -33,7 +33,7 @@ class AiService:
         except Exception as e:
             return False, f"{e}"
 
-    def build_prompt(self, df: pd.DataFrame, months: int, finance: FinanceService) -> str:
+    def make_prompt(self, df: pd.DataFrame, months: int, finance: FinanceService) -> str:
         if df.empty:
             return "User has no data."
         cutoff = (pd.Timestamp.today().date().replace(day=1) - pd.offsets.MonthBegin(months)).date()

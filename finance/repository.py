@@ -20,7 +20,7 @@ class FinanceRep:
     def __init__(self, db: FinanceDb):
         self.db = db
 
-    # ---------- Categories ----------
+  
     def add_category(self, name: str, typ: str) -> Tuple[bool, str]:
         name = safe_str(name, 50); typ = (typ or "").upper()
         if not name or typ not in ("INCOME","EXPENSE"):
@@ -41,7 +41,7 @@ class FinanceRep:
         with self.db.connect() as conn:
             return pd.read_sql_query(q, conn, params=params)
 
-    # ---------- Budgets ----------
+ 
     def add_budget(self, category_id: int, monthly_limit: float):
         if monthly_limit < 0: return False, "Monthly limit must be ≥ 0."
         with self.db.connect() as conn:
@@ -60,7 +60,6 @@ class FinanceRep:
                 ORDER BY c.type, c.name;
             """, conn)
 
-    # ---------- Transactions ----------
     def add_trans(self, date: str, description: str, amount: float, category_id: int, typ: str):
         if not is_date_valid(date): return False, "Invalid date. Use YYYY-MM-DD."
         description = safe_str(description, 120)
